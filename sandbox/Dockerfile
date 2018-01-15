@@ -1,9 +1,11 @@
 FROM ubuntu:17.10
 MAINTAINER hapy.lestat@gmail.com
 
+SHELL ["/bin/bash","-c"]
+
 # base system requirements, putting at top to avoid re-build layers
-COPY helpers/get_java.sh /tmp/get_java.sh
-COPY helpers/get_java_parser.py /tmp/get_java_parser.py
+COPY helpers/get_java.sh /var/lib/sandbox/helpers/get_java.sh
+COPY helpers/get_java_parser.py /var/lib/sandbox/helpers/get_java_parser.py
 
 RUN apt-get update &&\
     apt-get install curl git unzip -y &&\
@@ -14,28 +16,31 @@ RUN apt-get update &&\
     apt-get clean
 
 # Java, Maven versions
-ENV JAVA_VER=8u152
-ENV MVN_VERSION=3.5.2
+ARG JAVA_VER=8u152
+ARG MVN_VERSION=3.5.2
 
-ENV JAVA_ROOT_DIR=/usr/jdk
+ARG JAVA_ROOT_DIR=/usr/jdk
+
 ENV JAVA_HOME=${JAVA_ROOT_DIR}/${JAVA_VER}
-ENV DERBY_HOME=${JAVA_HOME}/db
 ENV PATH=${PATH}:${JAVA_HOME}/bin:${JAVA_HOME}/db/bin:${JAVA_HOME}/jre/bin
-ENV MAVEN_OPTS -Xmx2048m -XX:MaxPermSize=512m -Djava.awt.headless=true
+ENV MAVEN_OPTS -Xmx2048m -Djava.awt.headless=true
 
 # Java binary
 RUN mkdir /usr/jdk &&\
     cd /usr/jdk &&\
-    bash /tmp/get_java.sh ${JAVA_VER} jdk-${JAVA_VER}-linux-x64.tar.gz &&\
+    bash /var/lib/sandbox/helpers/get_java.sh ${JAVA_VER} jdk-${JAVA_VER}-linux-x64.tar.gz &&\
     mkdir ${JAVA_VER} &&\
     tar xf jdk-${JAVA_VER}-linux-x64.tar.gz -C ${JAVA_VER} --strip-components 1&&\
-    rm -f jdk-${JAVA_VER}-linux-x64.tar.gz
+    rm -f jdk-${JAVA_VER}-linux-x64.tar.gz &&\
+    touch ${JAVA_ROOT_DIR}/accepted-oracle-license-v1-1&&\
+    update-alternatives --install "/usr/bin/java" "java" "${JAVA_HOME}/bin/java" 1&&\
+    update-alternatives --install "/usr/bin/javac" "javac" "${JAVA_HOME}/bin/javac" 1
 
 # Maven binary
 RUN cd /opt &&\
     curl http://archive.apache.org/dist/maven/maven-3/${MVN_VERSION}/binaries/apache-maven-${MVN_VERSION}-bin.tar.gz -o apache-maven-${MVN_VERSION}-bin.tar.gz &&\
     tar xf apache-maven-${MVN_VERSION}-bin.tar.gz && rm -f apache-maven-${MVN_VERSION}-bin.tar.gz &&\
-    ln -s /opt/apache-maven-${MVN_VERSION}/bin/mvn /usr/bin/mvn
+    update-alternatives --install "/usr/bin/mvn" "mvn" "/opt/apache-maven-${MVN_VERSION}/bin/mvn" 1
 
 # building tools
 RUN pip install setuptools
@@ -50,5 +55,7 @@ RUN cd /tmp &&\
     rm -rf /tmp/python &&\
     rm -f egg.zip
 
+VOLUME ["/root/.m2"]
+VOLUME ["/root/ambari"]
 
 CMD ["/bin/bash"]
