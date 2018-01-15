@@ -24,7 +24,7 @@ ARG MVN_VERSION=3.5.2
 ARG JAVA_ROOT_DIR=/usr/jdk
 
 ENV JAVA_HOME=${JAVA_ROOT_DIR}/${JAVA_VER}
-ENV PATH=${PATH}:${JAVA_HOME}/bin:${JAVA_HOME}/db/bin:${JAVA_HOME}/jre/bin
+ENV PATH=${PATH}:${JAVA_HOME}/bin:${JAVA_HOME}/db/bin:${JAVA_HOME}/jre/bin:${SANDBOX_DIR}
 ENV MAVEN_OPTS -Xmx2048m -Djava.awt.headless=true
 
 # Java binary
