@@ -6,7 +6,12 @@ COPY helpers/get_java.sh /tmp/get_java.sh
 COPY helpers/get_java_parser.py /tmp/get_java_parser.py
 
 RUN apt-get update &&\
-    apt-get install curl python python3 python-pip python3-pip git unzip -y
+    apt-get install curl git unzip -y &&\
+    apt-get clean
+
+RUN apt-get update &&\
+    apt-get install --no-install-recommends python2.7-minimal python-pip -y &&\
+    apt-get clean
 
 # Java, Maven versions
 ENV JAVA_VER=8u152
@@ -33,9 +38,7 @@ RUN cd /opt &&\
     ln -s /opt/apache-maven-${MVN_VERSION}/bin/mvn /usr/bin/mvn
 
 # building tools
-RUN apt-get install rpm rpm-common rpm2cpio -y &&\
-    pip install setuptools &&\
-    pip3 install setuptools
+RUN pip install setuptools
 
 # pydebug egg: https://plugins.jetbrains.com/plugin/631-python
 # 173.4127—173.*: https://plugins.jetbrains.com/plugin/download?updateId=41832
