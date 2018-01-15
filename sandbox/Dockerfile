@@ -3,9 +3,11 @@ MAINTAINER hapy.lestat@gmail.com
 
 SHELL ["/bin/bash","-c"]
 
+ENV SANDBOX_DIR=/var/lib/sandbox
+
 # base system requirements, putting at top to avoid re-build layers
-COPY helpers/get_java.sh /var/lib/sandbox/helpers/get_java.sh
-COPY helpers/get_java_parser.py /var/lib/sandbox/helpers/get_java_parser.py
+COPY helpers/get_java.sh ${SANDBOX}/helpers/get_java.sh
+COPY helpers/get_java_parser.py ${SANDBOX}/helpers/get_java_parser.py
 
 RUN apt-get update &&\
     apt-get install curl git unzip -y &&\
@@ -28,7 +30,7 @@ ENV MAVEN_OPTS -Xmx2048m -Djava.awt.headless=true
 # Java binary
 RUN mkdir /usr/jdk &&\
     cd /usr/jdk &&\
-    bash /var/lib/sandbox/helpers/get_java.sh ${JAVA_VER} jdk-${JAVA_VER}-linux-x64.tar.gz &&\
+    bash ${SANDBOX}/helpers/get_java.sh ${JAVA_VER} jdk-${JAVA_VER}-linux-x64.tar.gz &&\
     mkdir ${JAVA_VER} &&\
     tar xf jdk-${JAVA_VER}-linux-x64.tar.gz -C ${JAVA_VER} --strip-components 1&&\
     rm -f jdk-${JAVA_VER}-linux-x64.tar.gz &&\
