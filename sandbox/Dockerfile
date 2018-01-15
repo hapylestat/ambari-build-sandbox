@@ -9,12 +9,15 @@ ENV SANDBOX_DIR=/var/lib/sandbox
 COPY helpers/get_java.sh ${SANDBOX}/helpers/get_java.sh
 COPY helpers/get_java_parser.py ${SANDBOX}/helpers/get_java_parser.py
 
+# rpm required to build rpm packages
 RUN apt-get update &&\
-    apt-get install curl git unzip -y &&\
+    apt-get install curl git unzip rpm -y &&\
     apt-get clean
 
+# gcc and python-dev needed for ambari-metrics to build psutils and eat around 190 Mb :(
 RUN apt-get update &&\
     apt-get install --no-install-recommends python2.7-minimal python-pip -y &&\
+    apt-get install gcc python-dev -y &&\
     apt-get clean
 
 # Java, Maven versions
