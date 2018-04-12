@@ -10,7 +10,7 @@ RUN apt-get update &&\
     apt-get clean
 
 RUN apt-get update &&\
-    apt-get install --no-install-recommends python2.7-minimal python-pip -y &&\
+    apt-get install --no-install-recommends python2.7-minimal python-pip python3-minimal python3-pip -y &&\
     apt-get clean
 
 # Java, Maven versions
