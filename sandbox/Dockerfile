@@ -21,7 +21,7 @@ RUN apt-get update &&\
     apt-get clean
 
 # Java, Maven versions
-ARG JAVA_VER=8u152
+ARG JAVA_VER=8u161
 ARG MVN_VERSION=3.5.2
 
 ARG JAVA_ROOT_DIR=/usr/jdk
