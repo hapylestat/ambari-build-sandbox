@@ -15,14 +15,16 @@ RUN apt-get update &&\
     apt-get clean
 
 # gcc and python-dev needed for ambari-metrics to build psutils and eat around 190 Mb :(
+
+# npm & libfontconfig required for admin view
 RUN apt-get update &&\
     apt-get install --no-install-recommends python2.7-minimal python-pip python3-minimal python3-pip -y &&\
-    apt-get install gcc python-dev -y &&\
+    apt-get install gcc python-dev npm libfontconfig -y &&\
     apt-get clean
 
 # Java, Maven versions
-ARG JAVA_VER=8u161
-ARG MVN_VERSION=3.5.2
+ARG JAVA_VER=8u181
+ARG MVN_VERSION=3.5.4
 
 ARG JAVA_ROOT_DIR=/usr/jdk
 
