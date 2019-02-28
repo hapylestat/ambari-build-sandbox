@@ -4,62 +4,69 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 JAVA8_DOWNLOAD_PAGE="http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html"
-JAVA9_DOWNLOAD_PAGE="http://www.oracle.com/technetwork/java/javase/downloads/jdk9-downloads-3848520.html"
+JAVA11_DOWNLOAD_PAGE="https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html"
+JAVA12_DOWNLOAD_PAGE="https://download.java.net/java/GA/jdk12/33/GPL" #openjdk-12_linux-x64_bin.tar.gz
 
-VER=$1
-JAVA_MAJOR_VER=${VER:0:1}
+JAVA_MAJOR_VER=$1
 DOWNLOAD_PAGE=
 TYPE="tar.gz"
-PLATFORM="linux x64"
 CACHE_FILE="/tmp/java_down_page.html"
 OUTPUT_FILE=$2
 
 finish(){
- if [ -f ${CACHE_FILE} ]; then
+ if [[ -f ${CACHE_FILE} ]]; then
    rm -f ${CACHE_FILE}
  fi
 }
 
 trap finish EXIT
 
-if [ "x${JAVA_MAJOR_VER}" == "x8" ]; then
+if [[ "x${JAVA_MAJOR_VER}" == "x8" ]]; then
  DOWNLOAD_PAGE=${JAVA8_DOWNLOAD_PAGE}
-elif [ "x${JAVA_MAJOR_VER}" == "x9" ]; then
- DOWNLOAD_PAGE=${JAVA9_DOWNLOAD_PAGE}
+ PLATFORM="linux x64"
+elif [[ "x${JAVA_MAJOR_VER}" == "x11" ]]; then
+ DOWNLOAD_PAGE=${JAVA11_DOWNLOAD_PAGE}
+ PLATFORM="linux"
+elif [[ "x${JAVA_MAJOR_VER}" == "x12" ]]; then
+ PLATFORM="linux"
+ DOWNLOAD_URL="${JAVA12_DOWNLOAD_PAGE}/openjdk-${JAVA_MAJOR_VER}_${PLATFORM}-x64_bin.${TYPE}"
 else
-  echo "Supporting only Java: 8, 9"
+  echo "Supporting only Java: 8, 11, 12; Java 9, 10: under EOL"
   exit 1
 fi
 
-if [ -f ${CACHE_FILE} ]; then
- rm -f ${CACHE_FILE} 1>/dev/null 2>&1
+if [[ "x${JAVA_MAJOR_VER}" != "x12" ]]; then
+  if [[ -f ${CACHE_FILE} ]]; then
+   rm -f ${CACHE_FILE} 1>/dev/null 2>&1
+  fi
+
+  if [[ -f ${OUTPUT_FILE} ]]; then
+   rm -f ${OUTPUT_FILE} 1>/dev/null 2>&1
+  fi
+
+  curl -L "${DOWNLOAD_PAGE}" -o "${CACHE_FILE}"
+  if [[ $? -ne 0 ]]; then
+    echo "Exception in downloading ${DOWNLOAD_PAGE}"
+    exit 1
+  fi
+
+  DOWNLOAD_URL=$(python "${DIR}/get_java_parser.py" "${CACHE_FILE}" "${JAVA_MAJOR_VER}" "${PLATFORM}" "${TYPE}")
 fi
 
-if [ -f ${OUTPUT_FILE} ]; then
- rm -f ${OUTPUT_FILE} 1>/dev/null 2>&1
-fi
-
-
-curl "${DOWNLOAD_PAGE}" > "${CACHE_FILE}"
-if [ $? -ne 0 ]; then
-  echo "Exception in downloading ${DOWNLOAD_PAGE}"
-  exit 1
-fi
-
-DOWNLOAD_URL=$(python "${DIR}/get_java_parser.py" "${CACHE_FILE}" "${VER}" "${PLATFORM}" "${TYPE}")
-
-if [ $? -ne 0 ]; then
+if [[ $? -ne 0 ]]; then
  echo "Exception in extracting url path"
  exit 1
 fi
 
-if [ "x${OUTPUT_FILE}" == "x" ]; then
-  curl -L -H "Cookie: oraclelicense=accept-securebackup-cookie" "${DOWNLOAD_URL}" -O
+HEADER="Cookie: oraclelicense=accept-securebackup-cookie"
+
+if [[ "x${OUTPUT_FILE}" == "x" ]]; then
+  curl -L -H "${HEADER}" "${DOWNLOAD_URL}" -O
 else
-  curl -L -H "Cookie: oraclelicense=accept-securebackup-cookie" "${DOWNLOAD_URL}" -o "${OUTPUT_FILE}"
+  curl -L -H "${HEADER}" "${DOWNLOAD_URL}" -o "${OUTPUT_FILE}"
 fi
 
-if [ $? -ne 0 ]; then
- echo "Error downloading file"
+if [[ $? -ne 0 ]]; then
+ echo "JDK ${JAVA_MAJOR_VER} Download failed "
  exit 1
 fi
