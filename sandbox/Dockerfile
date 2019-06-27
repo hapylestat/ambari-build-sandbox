@@ -12,11 +12,11 @@ COPY helpers/get_java_parser.py ${SANDBOX}/helpers/get_java_parser.py
 # rpm required to build rpm packages
 # npm & libfontconfig required for admin view
 # gcc and python-dev needed for ambari-metrics to build psutils and eat around 190 Mb :(
-RUN apt-get update &&\
-    apt-get install curl git unzip rpm -y &&\
-    apt-get install --no-install-recommends python2.7-minimal python-pip python3-minimal python3-pip -y &&\
-    apt-get install gcc python-dev npm libfontconfig -y &&\
-    apt-get clean
+RUN apt update &&\
+    apt install curl git unzip rpm -y &&\
+    apt install --no-install-recommends python2.7-minimal python-pip python3-minimal python3-pip -y &&\
+    apt install gcc python-dev npm libfontconfig -y &&\
+    apt clean
 
 # Java, Maven versions
 ARG JAVA_VER=11
@@ -46,7 +46,8 @@ RUN cd /opt &&\
     update-alternatives --install "/usr/bin/mvn" "mvn" "/opt/apache-maven-${MVN_VERSION}/bin/mvn" 1
 
 # building tools
-RUN pip install setuptools
+RUN pip install wheel setuptools
+RUN pip3 install wheel setuptools
 
 # pydebug egg: https://plugins.jetbrains.com/plugin/631-python
 # 173.4127—173.*: https://plugins.jetbrains.com/plugin/download?updateId=41832
